@@ -28,6 +28,7 @@ def apply_mask(model, masks):
 
 
 def test_model(dataset, model, args):
+    print(type(model.model))
     model.eval()
     test_loader = dataset['test']
     accuracy = 0

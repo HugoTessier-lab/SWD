@@ -154,13 +154,12 @@ class Bottleneck(nn.Module):
         return count
 
 
-class ResNet(nn.Module):
+class ResNetModel(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10, in_planes=64):
-        super(ResNet, self).__init__()
-        self.in_planes = in_planes
-
+        super(ResNetModel, self).__init__()
         self.blocks_list = list()
 
+        self.in_planes = in_planes
         self.is_imagenet = num_classes == 1000
 
         if self.is_imagenet:
@@ -182,13 +181,6 @@ class ResNet(nn.Module):
             self.layer4 = None
             self.linear = nn.Linear(in_planes * 4 * block.expansion, num_classes)
 
-        self.post_conv1_dimensions = None
-        self.num_block = num_blocks
-        self.num_classes = num_classes
-        self.block = block
-
-        self.last_bn = None
-
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
@@ -203,8 +195,7 @@ class ResNet(nn.Module):
         out = F.relu(self.prunablebn1(self.conv1(x)))
         if self.is_imagenet:
             out = F.max_pool2d(out, kernel_size=3, stride=2, padding=1)
-        if not self.post_conv1_dimensions:
-            self.post_conv1_dimensions = out.shape
+        post_conv1_dimensions = out.shape
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
@@ -213,39 +204,61 @@ class ResNet(nn.Module):
         out = F.avg_pool2d(out, out.size()[3])
         out = out.view(out.size(0), -1)
         out = self.linear(out)
+        return out, post_conv1_dimensions
+
+
+class ResNet(nn.Module):
+    def __init__(self, block, num_blocks, num_classes=10, in_planes=64):
+        super(ResNet, self).__init__()
+        self.model = ResNetModel(block, num_blocks, num_classes, in_planes)
+        self.module = self.model
+        self.post_conv1_dimensions = None
+        self.num_block = num_blocks
+        self.num_classes = num_classes
+
+        self.last_bn = None
+
+    def forward(self, x):
+        out, post_conv1_dimensions = self.model(x)
+        if not self.post_conv1_dimensions:
+            self.post_conv1_dimensions = post_conv1_dimensions
         return out
 
+    def distribute(self):
+        self.model = torch.nn.DataParallel(self.model)
+        self.module = self.model.module
+
     def update_last_bn(self):
-        last_bn = self.prunablebn1.weight.data
-        for b in self.blocks_list:
+        last_bn = self.module.prunablebn1.weight.data
+        for b in self.module.blocks_list:
             b.previous_bn = last_bn
             last_bn = b.last_bn.weight.data
-        self.last_bn = self.blocks_list[-1].last_bn.weight.data
+        self.last_bn = self.module.blocks_list[-1].last_bn.weight.data
 
     def compute_params_count(self, pruning_type='structured', threshold=0):
         if pruning_type == 'unstructured':
-            return int(torch.sum(torch.tensor([torch.sum(i.abs() > threshold) for i in self.parameters()])))
+            return int(torch.sum(torch.tensor([torch.sum(i.abs() > threshold) for i in self.module.parameters()])))
         elif 'structured' in pruning_type:
             self.update_last_bn()
-            count = (3 * torch.sum(self.prunablebn1.weight.abs() > threshold)
-                     * self.conv1.kernel_size[0] * self.conv1.kernel_size[1])
-            count += torch.sum(self.prunablebn1.weight.abs() > threshold) * 2
-            for b in self.blocks_list:
+            count = (3 * torch.sum(self.module.prunablebn1.weight.abs() > threshold)
+                     * self.module.conv1.kernel_size[0] * self.module.conv1.kernel_size[1])
+            count += torch.sum(self.module.prunablebn1.weight.abs() > threshold) * 2
+            for b in self.module.blocks_list:
                 count += b.get_block_params_count(threshold)
             count += torch.sum(self.last_bn.abs() > threshold) * self.num_classes + self.num_classes
             return int(count)
         else:
-            return int(np.sum([len(i.flatten()) for i in self.parameters()]))
+            return int(np.sum([len(i.flatten()) for i in self.module.parameters()]))
 
     def compute_flops_count(self, threshold=0):
         self.update_last_bn()
         count = 0
-        for b in self.blocks_list:
+        for b in self.module.blocks_list:
             count += b.get_block_flops_count(threshold)
-        count += (3 * torch.sum(self.prunablebn1.weight.abs() > threshold)
-                  * self.conv1.kernel_size[0] * self.conv1.kernel_size[1]
+        count += (3 * torch.sum(self.module.prunablebn1.weight.abs() > threshold)
+                  * self.module.conv1.kernel_size[0] * self.module.conv1.kernel_size[1]
                   * self.post_conv1_dimensions[2] * self.post_conv1_dimensions[3])
-        count += (2 * torch.sum(self.prunablebn1.weight.abs() > threshold)
+        count += (2 * torch.sum(self.module.prunablebn1.weight.abs() > threshold)
                   * self.post_conv1_dimensions[2] * self.post_conv1_dimensions[3])
         count += torch.sum(self.last_bn.abs() > threshold) * self.num_classes + self.num_classes
         return int(count)

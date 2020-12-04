@@ -22,10 +22,11 @@ Results are stored into two forms :
 * **--dataset_path** : Where to get the dataset (default: './dataset')
 * **--results_path** : Where to store the results summaries (default: './results')
 * **--no_cuda** : Disables CUDA training
+* **--distributed** : Distribute model across available GPUs (Warning : distribution should remain consistent before and after loading models)
 * **--debug** : Limits each epoch to one backprop
 * **--seed** : Manual seed for pytorch, so that all models start with the same initialisation (default: 0)
 * **--dataset** : Which dataset to use between 'cifar10' and 'cifar100' (default: 'cifar10')
-* **--model** : The model to load (default: 'resnet18')
+* **--model** : The model to load (default: 'resnet20')
 * **--lr** : Learning rate (default: 0.1)
 * **--wd** : Weight decay rate (default: 1e-4)
 * **--mu** : If no weight decay but still need SWD, set mu to a value above 0 (default: -1)

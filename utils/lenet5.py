@@ -82,6 +82,7 @@ class LeNet5(nn.Module):
 
     def __init__(self):
         super(LeNet5, self).__init__()
+        self.model = None
 
         self.c1 = C1()
         self.c2_1 = C2()
@@ -104,8 +105,14 @@ class LeNet5(nn.Module):
         output = self.f5(output)
         return output
 
+    def distribute(self):
+        # Not implemented yet
+        pass
+
     def compute_params_count(self, pruning_type='structured', threshold=0):
+        # Not implemented yet
         return 0
 
     def compute_flops_count(self, threshold=0):
+        # Not implemented yet
         return 0

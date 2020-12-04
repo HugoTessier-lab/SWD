@@ -114,14 +114,14 @@ class InvertedResidual(nn.Module):
         return count
 
 
-class MobileNetV2(nn.Module):
+class MobileNetV2Model(nn.Module):
     def __init__(self,
                  num_classes=1000,
                  width_mult=1.0,
                  inverted_residual_setting=None,
                  round_nearest=8,
                  block=None):
-        super(MobileNetV2, self).__init__()
+        super(MobileNetV2Model, self).__init__()
 
         self.block_list = list()
 
@@ -160,9 +160,6 @@ class MobileNetV2(nn.Module):
                 input_channel = output_channel
         features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
         self.features = nn.Sequential(*features)
-        self.last_bn = None
-
-        self.num_classes = num_classes
 
         self.classifier = nn.Sequential(
             nn.Dropout(0.2),
@@ -190,9 +187,32 @@ class MobileNetV2(nn.Module):
     def forward(self, x):
         return self._forward_impl(x)
 
+
+class MobileNetV2(nn.Module):
+    def __init__(self,
+                 num_classes=1000,
+                 width_mult=1.0,
+                 inverted_residual_setting=None,
+                 round_nearest=8,
+                 block=None):
+        super(MobileNetV2, self).__init__()
+
+        self.model = MobileNetV2Model(num_classes, width_mult, inverted_residual_setting, round_nearest, block)
+        self.module = self.model
+        self.last_bn = None
+        self.num_classes = num_classes
+
+    def forward(self, x):
+        out = self.model(x)
+        return out
+
+    def distribute(self):
+        self.model = torch.nn.DataParallel(self.model)
+        self.module = self.model.module
+
     def update_last_bn(self):
         last_bn = None
-        for f in self.features:
+        for f in self.module.features:
             if last_bn:
                 f.previous_bn = last_bn.weight.data
             last_bn = f.last_bn
@@ -200,21 +220,21 @@ class MobileNetV2(nn.Module):
 
     def compute_params_count(self, pruning_type='structured', threshold=0):
         if pruning_type == 'unstructured':
-            return int(torch.sum(torch.tensor([torch.sum(i > threshold) for i in self.parameters()])))
+            return int(torch.sum(torch.tensor([torch.sum(i > threshold) for i in self.module.parameters()])))
         elif 'structured' in pruning_type:
             self.update_last_bn()
             count = 0
-            for f in self.features:
+            for f in self.module.features:
                 count += f.get_block_params_count(threshold)
             count += torch.sum(self.last_bn.abs() > threshold) * self.num_classes + self.num_classes
             return count
         else:
-            return int(np.sum([len(i.flatten()) for i in self.parameters()]))
+            return int(np.sum([len(i.flatten()) for i in self.module.parameters()]))
 
     def compute_flops_count(self, threshold=0):
         self.update_last_bn()
         count = 0
-        for f in self.features:
+        for f in self.module.features:
             count += f.get_block_flops_count(threshold)
         count += torch.sum(self.last_bn.abs() > threshold) * self.num_classes + self.num_classes
         return count

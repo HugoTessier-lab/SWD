@@ -70,6 +70,8 @@ class Checkpoint:
             self.model = lenet5.LeNet5()
         if not self.args.no_cuda:
             self.model = self.model.cuda()
+        if self.args.distributed:
+            self.model.distribute()
         self.optimizer = torch.optim.SGD(self.model.parameters(),
                                          lr=self.args.lr, momentum=self.args.momentum, weight_decay=self.args.wd)
         if self.args.dataset == 'mnist':
@@ -86,7 +88,8 @@ class Checkpoint:
     def save(self):
         path = os.path.join(self.args.checkpoint_path, self.get_file_name(self.name) + '.chk')
         checkpoint = {'args': self.args, 'results': self.results, 'epoch': self.epoch,
-                      'model_state_dict': self.model.state_dict(),
+                      'model_state_dict': self.model.state_dict() if not self.args.distributed
+                      else self.model.module.state_dict(),
                       'optimizer_state_dict': self.optimizer.state_dict(),
                       'scheduler': self.scheduler,
                       'regularization': self.regularization}
@@ -106,7 +109,10 @@ class Checkpoint:
             if self.model is None or self.optimizer is None or self.scheduler is None:
                 self.create()
             checkpoint = torch.load(path)
-            self.model.load_state_dict(checkpoint['model_state_dict'])
+            if not self.args.distributed:
+                self.model.load_state_dict(checkpoint['model_state_dict'])
+            else:
+                self.model.module.load_state_dict(checkpoint['model_state_dict'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             self.scheduler = checkpoint['scheduler']
             self.results = checkpoint['results']

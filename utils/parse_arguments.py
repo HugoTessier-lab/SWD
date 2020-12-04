@@ -16,6 +16,10 @@ def parse_arguments():
     parser.add_argument('--no_cuda', action='store_true', default=False,
                         help='Disables CUDA training')
 
+    parser.add_argument("--distributed", action="store_true",
+                        help="Distribute model across available GPUs "
+                             "(Warning : distribution should remain consistent before and after loading models)")
+
     parser.add_argument("--debug", action="store_true",
                         help="Limits each epoch to one backprop")
 
@@ -26,8 +30,8 @@ def parse_arguments():
     parser.add_argument('--dataset', type=str, default="cifar10",
                         help="Which dataset to use between 'cifar10', 'cifar100' or 'imagenet' (default: 'cifar10')")
 
-    parser.add_argument('--model', type=str, default="resnet18",
-                        help="The model to load (default: 'resnet18')")
+    parser.add_argument('--model', type=str, default="resnet20",
+                        help="The model to load (default: 'resnet20')")
 
     parser.add_argument('--lr', type=float, default=0.1,
                         help='Learning rate (default: 0.1)')
