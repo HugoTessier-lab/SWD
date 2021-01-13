@@ -28,7 +28,6 @@ def apply_mask(model, masks):
 
 
 def test_model(dataset, model, args):
-    print(type(model.model))
     model.eval()
     test_loader = dataset['test']
     accuracy = 0
@@ -84,8 +83,12 @@ def accuracy_top5(output, target):
     return result
 
 
-def train_model(checkpoint, args, epochs, dataset, masks=None):
+def train_model(checkpoint, args, epochs, dataset, masks=None, soft_pruning=False):
     while epochs[0] <= checkpoint.epoch < epochs[1]:
+        if soft_pruning:
+            apply_mask(checkpoint.model,
+                       get_mask(checkpoint.model,
+                                checkpoint.regularization.get_target() if checkpoint.regularization else args.target))
         if checkpoint.epoch == epochs[0]:
             acc, top5, test_loss = test_model(_dataset, checkpoint.model, args)
             checkpoint.save_results({'epoch': 'before', 'acc': acc, 'top5': top5, 'loss': test_loss,
@@ -177,7 +180,10 @@ if __name__ == '__main__':
     training_model = Checkpoint(arguments, 'training')
     training_model.regularization = Regularization(None, _targets[0], arguments)
     training_model.load()
-    train_model(training_model, arguments, [0, arguments.epochs], _dataset, None)
+    train_model(training_model, arguments, [0, arguments.epochs], _dataset, None, soft_pruning=arguments.soft_pruning)
+
+    if arguments.lr_rewinding:
+        training_model.rewind_lr()
 
     if arguments.no_ft:
         print('\nPruning model without fine tuning :')

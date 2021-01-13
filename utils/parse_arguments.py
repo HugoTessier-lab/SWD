@@ -36,6 +36,9 @@ def parse_arguments():
     parser.add_argument('--lr', type=float, default=0.1,
                         help='Learning rate (default: 0.1)')
 
+    parser.add_argument("--lr_rewinding", action="store_true",
+                        help="Rewinds LR for fine-tuning (default: False)")
+
     parser.add_argument('--wd', default="5e-4", type=float,
                         help='Weight decay rate (default: 5e-4)')
 
@@ -62,6 +65,9 @@ def parse_arguments():
 
     parser.add_argument('--pruning_iterations', type=int, default=1,
                         help='Amount of iterations into which subdivide the pruning process (default: 1)')
+
+    parser.add_argument("--soft_pruning", action="store_true",
+                        help="Prunes at the beginning of each epoch (default: False)")
 
     parser.add_argument('--pruning_type', type=str, default='unstructured',
                         help='Type of pruning between "unstructured", '

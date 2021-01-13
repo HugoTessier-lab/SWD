@@ -28,6 +28,7 @@ Results are stored into two forms :
 * **--dataset** : Which dataset to use between 'cifar10' and 'cifar100' (default: 'cifar10')
 * **--model** : The model to load (default: 'resnet20')
 * **--lr** : Learning rate (default: 0.1)
+* **--lr_rewinding** : Rewinds LR for fine-tuning (default: False)
 * **--wd** : Weight decay rate (default: 1e-4)
 * **--mu** : If no weight decay but still need SWD, set mu to a value above 0 (default: -1)
 * **--momentum** : Momentum of SGD (default: 0.9)
@@ -37,6 +38,7 @@ Results are stored into two forms :
 * **--ft_epochs** : Number of epochs to fine-tune (default: 50)
 * **--additional_epochs** : Number of epochs after the last fine-tuning (default: 0)
 * **--pruning_iterations** : Amount of iterations into which subdivide the pruning process (default: 1)
+* **--soft_pruning** : Prunes at the beginning of each epoch (default: False)
 * **--pruning_type** : Type of pruning between "unstructured", "structured" (default: "unstructured")
 * **--target** : Pruning rate (default: 900)
 * **--no_ft** : Skips the fine-tuning and only prunes the model

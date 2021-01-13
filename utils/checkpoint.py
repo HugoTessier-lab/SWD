@@ -43,6 +43,10 @@ class Checkpoint:
 
     def get_file_name(self, name):
         name = self.training_specs() + self.reg_specs() + name
+        if self.args.lr_rewinding:
+            name += '_lr-rewinding'
+        if self.args.soft_pruning:
+            name += '_soft-pruning'
         if self.args.debug:
             name += '_DEBUG'
         return name
@@ -126,3 +130,16 @@ class Checkpoint:
         clone = copy.deepcopy(self)
         clone.name = new_name
         return clone
+
+    def rewind_lr(self):
+        self.optimizer = torch.optim.SGD(self.model.parameters(),
+                                         lr=self.args.lr, momentum=self.args.momentum, weight_decay=self.args.wd)
+        if self.args.dataset == 'mnist':
+            self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
+                                                                  milestones=[self.args.ft_epochs * 2],
+                                                                  gamma=0.1)
+        else:
+            self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer,
+                                                                  milestones=[self.args.ft_epochs // 3,
+                                                                              2 * self.args.ft_epochs // 3],
+                                                                  gamma=0.1)
