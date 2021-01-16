@@ -23,7 +23,8 @@ class Checkpoint:
         self.load()
 
     def training_specs(self):
-        indicate_target = not ('training' in self.name and not self.args.reg_type == 'swd')
+        indicate_target = not ('training' in self.name and not self.args.reg_type == 'swd'
+                               and self.args.soft_pruning is False)
         return (f"(model-{self.args.model}_dataset-{self.args.dataset}_wd-{self.args.wd}" +
                 (f"_pruningType-{self.args.pruning_type}_pruningTarget-{self.args.target}" if indicate_target else "")
                 + ")_")
@@ -43,7 +44,7 @@ class Checkpoint:
 
     def get_file_name(self, name):
         name = self.training_specs() + self.reg_specs() + name
-        if self.args.lr_rewinding:
+        if self.args.lr_rewinding and 'training' not in self.name:
             name += '_lr-rewinding'
         if self.args.soft_pruning:
             name += '_soft-pruning'
