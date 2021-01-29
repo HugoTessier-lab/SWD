@@ -39,7 +39,7 @@ Results are stored into two forms :
 * **--additional_epochs** : Number of epochs after the last fine-tuning (default: 0)
 * **--pruning_iterations** : Amount of iterations into which subdivide the pruning process (default: 1)
 * **--soft_pruning** : Prunes at the beginning of each epoch (default: False)
-* **--pruning_type** : Type of pruning between "unstructured", "structured" (default: "unstructured")
+* **--pruning_type** : Type of pruning between "unstructured", "structured", which prunes batchnorms, and "structuredF", which also prunes corresponding filters (default: "unstructured")
 * **--target** : Pruning rate (default: 900)
 * **--no_ft** : Skips the fine-tuning and only prunes the model
 * **--reg_type** : Type of regularization between "none", "swd" and "liu2017" (default: "none")

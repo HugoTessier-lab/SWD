@@ -71,7 +71,8 @@ def parse_arguments():
 
     parser.add_argument('--pruning_type', type=str, default='unstructured',
                         help='Type of pruning between "unstructured", '
-                             '"structured" (default: "unstructured")')
+                             '"structured", which prunes batchnorms, and "structuredF", which also prunes '
+                             'corresponding filters (default: "unstructured")')
 
     parser.add_argument('--target', default="900", type=float, help="Pruning rate  (default: 900)")
 

@@ -37,6 +37,39 @@ def get_structured_mask(model, target):
     return masks
 
 
+def get_structuredF_mask(model, target):
+    ths = find_ths_by_dichotomy(target, model)
+    masks = list()
+    for name, p in model.named_parameters():
+        if 'conv' in name:
+            id = name.replace('.conv.weight', '').replace('.conv.bias', '')
+            module = None
+            for n, m in model.named_modules():
+                if n == id:
+                    module = m
+            after = (module.bn_after[0].weight.abs() >= ths).float()
+            after = after.view(len(after), 1, 1, 1)
+            if module.bn_before[0] is not None:
+                before = (module.bn_before[0].weight.abs() >= ths).float()
+                before = before.view(1, len(before), 1, 1)
+            else:
+                before = 1
+            mask = p * after
+            mask = mask * before
+            mask = (mask != 0.).float()
+            masks.append(mask)
+
+        elif 'prunable' in name:
+            if 'bias' in name:
+                name_weight = name.replace('bias', 'weight')
+                masks.append((model.state_dict()[name_weight].abs() >= ths).float())
+            else:
+                masks.append((p.abs() >= ths).float())
+        else:
+            masks.append((torch.ones(p.shape).to(p.device)).float())
+    return masks
+
+
 def get_unstructured_mask(model, target):
     parameters = torch.cat([i.abs().flatten() for n, i in model.named_parameters() if 'bn' not in n]).sort()[0]
     ths = parameters[int((target / 1000) * len(parameters))]
@@ -67,10 +100,12 @@ class Regularization:
     def __init__(self, a, target, args):
         self.a = a
         self.target = target
-        if args.pruning_type == 'unstructured':
+        if args.pruning_type == 'unstructured' and not args.reg_type == 'liu2017':
             self.get_mask = get_unstructured_mask
-        elif args.pruning_type == 'structured':
+        elif args.pruning_type == 'structured' or args.reg_type == 'liu2017':
             self.get_mask = get_structured_mask
+        elif args.pruning_type == 'structuredF' and not args.reg_type == 'liu2017':
+            self.get_mask = get_structuredF_mask
         else:
             print('Wrong pruning type')
             raise ValueError
@@ -103,6 +138,8 @@ def get_mask_function(pruning_type):
         return get_unstructured_mask
     elif pruning_type == 'structured':
         return get_structured_mask
+    elif pruning_type == 'structuredF':
+        return get_structuredF_mask
     else:
         print('Wrong pruning type')
         raise ValueError
