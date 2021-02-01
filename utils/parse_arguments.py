@@ -33,6 +33,9 @@ def parse_arguments():
     parser.add_argument('--model', type=str, default="resnet20",
                         help="The model to load (default: 'resnet20')")
 
+    parser.add_argument('--feature_maps', type=int, default=64,
+                        help='Input feature maps of the model (default: 64)')
+
     parser.add_argument('--lr', type=float, default=0.1,
                         help='Learning rate (default: 0.1)')
 

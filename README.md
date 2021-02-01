@@ -27,6 +27,7 @@ Results are stored into two forms :
 * **--seed** : Manual seed for pytorch, so that all models start with the same initialisation (default: 0)
 * **--dataset** : Which dataset to use between 'cifar10' and 'cifar100' (default: 'cifar10')
 * **--model** : The model to load (default: 'resnet20')
+* **--feature_maps** : Input feature maps of the model (default: 64)
 * **--lr** : Learning rate (default: 0.1)
 * **--lr_rewinding** : Rewinds LR for fine-tuning (default: False)
 * **--wd** : Weight decay rate (default: 1e-4)

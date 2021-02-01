@@ -68,7 +68,7 @@ class Checkpoint:
             else:
                 print("Wrong dataset specified")
                 raise ValueError
-            self.model = resnet.resnet_model(self.args.model, num_class)
+            self.model = resnet.resnet_model(self.args.model, num_class, in_planes=self.args.feature_maps)
         elif self.args.model == 'mobilenet':
             self.model = mobilenet.mobilenet_v2()
         else:

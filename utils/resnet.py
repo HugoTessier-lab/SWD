@@ -292,70 +292,70 @@ class ResNet(nn.Module):
         return int(count)
 
 
-def resnet18(num_classes=10):
-    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, in_planes=64)
+def resnet18(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet34(num_classes=10):
-    return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes, in_planes=64)
+def resnet34(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet50(num_classes=10):
-    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, in_planes=64)
+def resnet50(num_classes=10, in_planes=64):
+    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet101(num_classes=10):
-    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, in_planes=64)
+def resnet101(num_classes=10, in_planes=64):
+    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet152(num_classes=10):
-    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes=num_classes, in_planes=64)
+def resnet152(num_classes=10, in_planes=64):
+    return ResNet(Bottleneck, [3, 8, 36, 3], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet20(num_classes=10):
-    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes, in_planes=64)
+def resnet20(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet32(num_classes=10):
-    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes, in_planes=64)
+def resnet32(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet44(num_classes=10):
-    return ResNet(BasicBlock, [7, 7, 7], num_classes=num_classes, in_planes=64)
+def resnet44(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [7, 7, 7], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet56(num_classes=10):
-    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes, in_planes=64)
+def resnet56(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes, in_planes=in_planes)
 
 
-def resnet110(num_classes=10):
-    return ResNet(BasicBlock, [18, 18, 18], num_classes=num_classes, in_planes=64)
+def resnet110(num_classes=10, in_planes=64):
+    return ResNet(BasicBlock, [18, 18, 18], num_classes=num_classes, in_planes=in_planes)
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
            'resnet20', 'resnet32', 'resnet44', 'resnet56', 'resnet110']
 
 
-def resnet_model(model, num_classes=10):
+def resnet_model(model, num_classes=10, in_planes=64):
     if model == 'resnet18':
-        return resnet18(num_classes)
+        return resnet18(num_classes, in_planes)
     elif model == 'resnet34':
-        return resnet34(num_classes)
+        return resnet34(num_classes, in_planes)
     elif model == 'resnet50':
-        return resnet50(num_classes)
+        return resnet50(num_classes, in_planes)
     elif model == 'resnet101':
-        return resnet101(num_classes)
+        return resnet101(num_classes, in_planes)
     elif model == 'resnet152':
-        return resnet152(num_classes)
+        return resnet152(num_classes, in_planes)
     elif model == 'resnet20':
-        return resnet20(num_classes)
+        return resnet20(num_classes, in_planes)
     elif model == 'resnet32':
-        return resnet32(num_classes)
+        return resnet32(num_classes, in_planes)
     elif model == 'resnet44':
-        return resnet44(num_classes)
+        return resnet44(num_classes, in_planes)
     elif model == 'resnet56':
-        return resnet56(num_classes)
+        return resnet56(num_classes, in_planes)
     elif model == 'resnet110':
-        return resnet110(num_classes)
+        return resnet110(num_classes, in_planes)
     else:
         raise ValueError
