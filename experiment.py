@@ -6,6 +6,7 @@ from utils.regularization_and_pruning import Regularization, get_mask_function
 import math
 import numpy as np
 from utils.checkpoint import Checkpoint
+import time
 
 if torch.backends.cudnn.enabled:
     torch.backends.cudnn.deterministic = True
@@ -106,7 +107,11 @@ def train_model(checkpoint, args, epochs, dataset, masks=None, soft_pruning=Fals
         accuracy = 0
         global_loss = 0
         top5 = 0
+        begin = None
         for batch_idx, (data, target) in enumerate(train_loader):
+            if begin is None:
+                print('Begin')
+                begin = time.time()
             if batch_idx != 0 and args.debug:
                 break
             if checkpoint.regularization is not None:
@@ -139,6 +144,8 @@ def train_model(checkpoint, args, epochs, dataset, masks=None, soft_pruning=Fals
         if masks:
             apply_mask(checkpoint.model, masks)
 
+        duration = time.time() - begin
+
         reg_mask_after = get_mask(checkpoint.model,
                                   checkpoint.regularization.get_target() if checkpoint.regularization else args.target)
         ingoing, outgoing = compute_migration(reg_mask_before, reg_mask_after)
@@ -152,7 +159,8 @@ def train_model(checkpoint, args, epochs, dataset, masks=None, soft_pruning=Fals
                                  'ingoing': ingoing, 'outgoing': outgoing, 'a': last_a,
                                  'norm': l2_norm(checkpoint.model),
                                  'pruned_param_count': checkpoint.model.compute_params_count(args.pruning_type),
-                                 'pruned_flops_count': checkpoint.model.compute_flops_count()})
+                                 'pruned_flops_count': checkpoint.model.compute_flops_count(),
+                                 'epoch_duration': duration})
         checkpoint.epoch += 1
         checkpoint.scheduler.step()
         checkpoint.save()
