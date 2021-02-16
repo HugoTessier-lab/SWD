@@ -110,7 +110,6 @@ def train_model(checkpoint, args, epochs, dataset, masks=None, soft_pruning=Fals
         begin = None
         for batch_idx, (data, target) in enumerate(train_loader):
             if begin is None:
-                print('Begin')
                 begin = time.time()
             if batch_idx != 0 and args.debug:
                 break
